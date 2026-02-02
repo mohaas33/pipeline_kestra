@@ -1,0 +1,26 @@
+id: count_green_2020_lines
+namespace: zoomcamp
+
+tasks:
+  - id: download_and_count_all
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    commands:
+      - |
+        TOTAL=0
+        for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
+          echo "Processing 2020-$month..."
+          wget -qO- https://github.com/DataTalksClub/nyc-tlc-data/releases/download/green/green_tripdata_2020-$month.csv.gz | gunzip > temp.csv
+          LINES=$(tail -n +2 temp.csv | wc -l)  # Exclude header
+          echo "Month $month: $LINES data lines"
+          TOTAL=$((TOTAL + LINES))
+          rm temp.csv
+        done
+        echo "=============================="
+        echo "TOTAL LINES (excluding headers): $TOTAL"
+        echo $TOTAL > total_count.txt
+
+  - id: log_total
+    type: io.kestra.plugin.core.log.Log
+    message: "Processing complete. Check task logs for total count."
